@@ -82,27 +82,32 @@ with st.container():
         submit_button = st.form_submit_button(label="Calculate Premium", disabled=not all_filled)
 
         if submit_button:
-            # Prepare input data for the prediction
+            # Prepare input data for the prediction (Make sure to match column names exactly as the model expects)
+            # Ensure input data matches the order of features the model was trained with
             input_data = pd.DataFrame({
                 'Age': [age],
                 'BMI': [bmi],
                 'Weight': [weight],
                 'Height': [height],
                 'Diabetes': [diabetes],
-                'BloodPressure': [blood_pressure],
-                'Transplants': [transplants],
-                'ChronicDiseases': [chronic_diseases],
-                'Allergies': [allergies],
-                'CancerHistory': [cancer_history],
-                'MajorSurgeries': [major_surgeries]
+                'BloodPressureProblems': [blood_pressure],   # Rename to match model training
+                'AnyTransplants': [transplants],              # Rename to match model training
+                'AnyChronicDiseases': [chronic_diseases],     # Rename to match model training
+                'KnownAllergies': [allergies],                # Rename to match model training
+                'HistoryOfCancerInFamily': [cancer_history],  # Rename to match model training
+                'NumberOfMajorSurgeries': [major_surgeries]   # Rename to match model training
             })
+
+            # Reorder columns to match the model's training order
+            input_data = input_data[model.feature_names_in_]
 
             # Make the prediction using the model
             predicted_premium = model.predict(input_data)[0]
 
-            # Show the predicted premium
-            st.success(f"Predicted Insurance Premium: ₹{predicted_premium:.2f}", icon="💸")
 
+            # Show the predicted premium
+            st.success(f"Predicted Insurance Premium: {predicted_premium:.2f}", icon="💸")
+            st.toast(f"Predicted Insurance Premium - {predicted_premium:.2f}")
             # Create DataFrame from input data and predicted premium
             input_data["PredictedPremium"] = predicted_premium
 
