@@ -1,7 +1,14 @@
+import os
 import streamlit as st
 import requests
-import pandas as pd
 from openpyxl import load_workbook
+from dotenv import load_dotenv
+
+# Load environment variables (if using .env file)
+load_dotenv()
+
+# Fetch API URL from environment variable
+api_url = os.environ.get("API_URL")
 
 # Title and Description
 col1, col2, col3 = st.columns([1.5, 5, 1.5])  # Define relative column width (e.g., 1 for image, 5 for title)
@@ -16,7 +23,6 @@ with col3:
     st.image("Safety.png", width=100)  # Image on the left
 st.markdown("<h6 style='text-align: center;'>Estimate your insurance premium based on your personal and health data.</h6>", unsafe_allow_html=True)
 
-
 st.markdown("""
     <style>
         .form-container {
@@ -27,15 +33,12 @@ st.markdown("""
 
 # Create a container for the form
 with st.container():
-    # Apply the border style to the form using a CSS class
     with st.form(key="insurance_form", clear_on_submit=False):
-
         # Centered Heading for User Details Section
         st.markdown("<h3 style='text-align: center;'>Add your details to get Predicted Premium</h3>", unsafe_allow_html=True)
 
         # Create two columns side by side for Age and BMI
         col1, col2 = st.columns(2)
-
         with col1:
             age = st.number_input("Age", min_value=18, max_value=66, step=1, help="Enter your age (18-66).")
         with col2:
@@ -43,7 +46,6 @@ with st.container():
 
         # Create another two columns for Weight and Height
         col3, col4 = st.columns(2)
-
         with col3:
             weight = st.number_input("Weight (in kg)", min_value=30, max_value=200, step=1, help="Enter your weight in kilograms.")
         with col4:
@@ -51,15 +53,13 @@ with st.container():
 
         # Create another two columns for Diabetes and Blood Pressure
         col5, col6 = st.columns(2)
-
         with col5:
-            diabetes = st.radio("Do you have diabetes?", options=[0, 1], format_func=lambda x: "Yes" if x else "No", help="Select 'Yes' if you have diabetes, otherwise select 'No'.")
+            diabetes = st.radio("Do you have diabetes?", options=[0, 1], format_func=lambda x: "Yes" if x else "No", help="Select 'Yes' if you have diabetes.")
         with col6:
             blood_pressure = st.radio("Do you have blood pressure problems?", options=[0, 1], format_func=lambda x: "Yes" if x else "No", help="Select 'Yes' if you have blood pressure issues.")
 
         # Create another two columns for Transplants and Chronic Diseases
         col7, col8 = st.columns(2)
-
         with col7:
             transplants = st.radio("Have you undergone any transplants?", options=[0, 1], format_func=lambda x: "Yes" if x else "No", help="Select 'Yes' if you've had any transplants.")
         with col8:
@@ -67,7 +67,6 @@ with st.container():
 
         # Create another two columns for Allergies and Cancer History
         col9, col10 = st.columns(2)
-
         with col9:
             allergies = st.radio("Do you have known allergies?", options=[0, 1], format_func=lambda x: "Yes" if x else "No", help="Select 'Yes' if you have allergies.")
         with col10:
@@ -101,12 +100,12 @@ with st.container():
 
             # Send input data to Flask API
             try:
-                response = requests.post("http://127.0.0.1:5000/predict", json=input_data)
+                response = requests.post(api_url, json=input_data)
                 if response.status_code == 200:
                     # Extract prediction
-                    premium = response.json()["PredictedPremium"]
+                    premium = response.json().get("PredictedPremium")
 
-                    # Show toaster-like notification (Brief, non-blocking)
+                    # Show notification with the prediction
                     st.success(f"Predicted Insurance Premium: {premium}", icon="💸")
 
                     # Create DataFrame from input data
@@ -122,7 +121,10 @@ with st.container():
                         sheet = wb.active
                     except FileNotFoundError:
                         # If the file doesn't exist, create a new one with headers
-                        sheet = wb.create_sheet("Data")
+                        wb = load_workbook(file_path) if os.path.exists(file_path) else None
+                        if not wb:
+                            wb = Workbook()  # Create a new workbook if it doesn't exist
+                        sheet = wb.active
                         sheet.append(list(input_data.keys()))  # Add headers
                         wb.save(file_path)
 
@@ -130,7 +132,6 @@ with st.container():
                     sheet.append(list(input_data.values()))
                     wb.save(file_path)
 
-                    st.toast(f"Predicted Insurance Premium: {premium}", icon="💸")
                 else:
                     st.error("Failed to retrieve prediction. Please check the API.", icon="❌")
             except Exception as e:
