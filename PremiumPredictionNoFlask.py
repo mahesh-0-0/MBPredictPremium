@@ -1,7 +1,11 @@
 import streamlit as st
 import pandas as pd
 import pickle
-from openpyxl import load_workbook
+import warnings
+from sklearn.exceptions import InconsistentVersionWarning
+
+# Suppress only the specific warning
+warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 
 # Load the pre-trained model from the pickle file
 with open('final_predict_model.pkl', 'rb') as file:
@@ -107,23 +111,5 @@ with st.container():
 
             # Show the predicted premium
             st.success(f"Predicted Insurance Premium: {predicted_premium:.2f}", icon="💸")
-            st.toast(f"Predicted Insurance Premium - {predicted_premium:.2f}")
-            # Create DataFrame from input data and predicted premium
-            input_data["PredictedPremium"] = predicted_premium
-
-            # Save the data to an Excel file
-            file_path = "insurance_data.xlsx"
-
-            try:
-                # Try to open the existing workbook
-                wb = load_workbook(file_path)
-                sheet = wb.active
-            except FileNotFoundError:
-                # If the file doesn't exist, create a new one with headers
-                sheet = wb.create_sheet("Data")
-                sheet.append(list(input_data.columns))  # Add headers
-                wb.save(file_path)
-
-            # Append the user input data to the sheet
-            sheet.append(list(input_data.iloc[0]))
-            wb.save(file_path)
+            st.toast(f"Predicted Insurance Premium: {predicted_premium:.2f}")
+            
