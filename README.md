@@ -85,3 +85,7 @@
 - App URL without Flask API(Streamlit): https://premiumpredictionwala.streamlit.app/
 - Render Dashboard: https://premiumpredictionwala.onrender.com
 - App URL with Flask API(Streamlit): https://premiumpricepredictionwala.streamlit.app/
+
+- Tableau Dashboard - Final Version
+  ![image](https://github.com/user-attachments/assets/ad8576d5-9bd2-4f5d-a023-eb06249f47f9)
+
